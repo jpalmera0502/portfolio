@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Quiz - Juan Palmera</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a3a5c;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #f0a500;
+            font-size: 2.5rem;
+            margin: 30px 0 10px 0;
+            text-align: center;
+        }
+        .subtitle {
+            color: #cce0f0;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        #quiz-box {
+            background: #16324f;
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        #question-number {
+            color: #f0a500;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        #question-text {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .option-btn {
+            background: #1a3a5c;
+            color: white;
+            border: 2px solid #f0a500;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { background: #f0a500; color: #1a3a5c; }
+        .correct { background: #00aa55 !important; border-color: #00aa55 !important; }
+        .wrong { background: #cc2200 !important; border-color: #cc2200 !important; }
+        #feedback {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        #score-bar {
+            background: #0d2137;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+        #progress {
+            background: #0d2137;
+            border-radius: 10px;
+            height: 8px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #progress-fill {
+            background: #f0a500;
+            height: 8px;
+            border-radius: 10px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .play-again-btn {
+            background: #f0a500;
+            color: #1a3a5c;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .play-again-btn:hover { background: #c98500; }
+        .back-link {
+            color: #f0a500;
+            text-decoration: none;
+            margin-top: 30px;
+            font-size: 1rem;
+        }
+        .back-link:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>🏆 Sports Trivia Quiz</h1>
+    <p class="subtitle">Test your sports knowledge!</p>
+
+    <div id="quiz-box">
+        <div id="progress"><div id="progress-fill"></div></div>
+        <div id="question-number"></div>
+        <div id="question-text"></div>
+        <div id="options"></div>
+        <div id="feedback"></div>
+        <div id="score-bar">Score: <span id="score">0</span> / <span id="total">0</span></div>
+    </div>
+
+    <a href="scratch.html" class="back-link">← Back to Sports Page</a>
+
+    <script>
+        const questions = [
+            {
+                q: "How many players are on a basketball court per team?",
+                options: ["4", "5", "6", "7"],
+                answer: "5"
+            },
+            {
+                q: "Which country won the 2022 FIFA World Cup?",
+                options: ["Brazil", "France", "Argentina", "Germany"],
+                answer: "Argentina"
+            },
+            {
+                q: "How many rings does Michael Jordan have?",
+                options: ["4", "5", "6", "7"],
+                answer: "6"
+            },
+            {
+                q: "In which sport do you use a puck?",
+                options: ["Soccer", "Hockey", "Tennis", "Baseball"],
+                answer: "Hockey"
+            },
+            {
+                q: "How many points is a touchdown worth in American Football?",
+                options: ["3", "4", "6", "7"],
+                answer: "6"
+            },
+            {
+                q: "Which team has won the most NBA championships?",
+                options: ["Lakers", "Celtics", "Bulls", "Warriors"],
+                answer: "Celtics"
+            },
+            {
+                q: "How long is a standard soccer match?",
+                options: ["60 minutes", "80 minutes", "90 minutes", "100 minutes"],
+                answer: "90 minutes"
+            },
+            {
+                q: "Which country invented basketball?",
+                options: ["USA", "Canada", "UK", "Spain"],
+                answer: "Canada"
+            }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answered = false;
+
+        function loadQuestion() {
+            if (current >= questions.length) {
+                showFinal();
+                return;
+            }
+            answered = false;
+            const q = questions[current];
+            document.getElementById('question-number').textContent = `Question ${current + 1} of ${questions.length}`;
+            document.getElementById('question-text').textContent = q.q;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('progress-fill').style.width = `${(current / questions.length) * 100}%`;
+
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                optDiv.appendChild(btn);
+            });
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('total').textContent = current;
+        }
+
+        function checkAnswer(selected, btn) {
+            if (answered) return;
+            answered = true;
+            const correct = questions[current].answer;
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => {
+                b.disabled = true;
+                if (b.textContent === correct) b.classList.add('correct');
+            });
+            if (selected === correct) {
+                score++;
+                btn.classList.add('correct');
+                document.getElementById('feedback').innerHTML = '✅ Correct!';
+            } else {
+                btn.classList.add('wrong');
+                document.getElementById('feedback').innerHTML = `❌ Wrong! The answer was: ${correct}`;
+            }
+            document.getElementById('score').textContent = score;
+            document.getElementById('total').textContent = current + 1;
+            current++;
+            setTimeout(loadQuestion, 1500);
+        }
+
+        function showFinal() {
+            const percent = Math.round((score / questions.length) * 100);
+            let emoji = percent >= 80 ? '🏆' : percent >= 50 ? '👍' : '📚';
+            document.getElementById('quiz-box').innerHTML = `
+                <h2 style="color:#f0a500; font-size:2rem;">${emoji} Quiz Complete!</h2>
+                <p style="font-size:1.3rem; margin:20px 0;">You scored <strong>${score} out of ${questions.length}</strong></p>
+                <p style="font-size:1.1rem; color:#cce0f0;">${percent}% correct</p>
+                <br>
+                <button class="play-again-btn" onclick="location.reload()">🔄 Play Again</button>
+            `;
+        }
+
+        loadQuestion();
+    </script>
+
+</body>
+</html>
